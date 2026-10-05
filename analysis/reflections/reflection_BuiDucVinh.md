@@ -56,25 +56,26 @@
 
 ## Phần 3: Action Plan cho Project cá nhân (Application Plan)
 
-### Project: Trợ lý hỏi đáp chính sách & quy trình nội bộ (tiếng Việt)
+### Project: Trợ lý RAG tra cứu tài liệu nghiên cứu cho luận văn
 
 #### 1. Hiện trạng
-- **Pipeline hiện tại:** naive RAG — chia đoạn cố định 500 ký tự, dense search 1 vector store, top-3 đưa thẳng vào LLM.
+- **Pipeline hiện tại:** thư viện ~100 paper PDF (tiếng Anh) + ghi chú thí nghiệm (markdown, tiếng Việt/Anh). Hiện đang tìm bằng keyword search trong Zotero và đọc thủ công; prototype RAG đơn giản (chia đoạn cố định 1000 ký tự, dense search, top-3) trả lời kém.
 - **Vấn đề / Bottlenecks:**
-  - Nhiều phiên bản cùng một chính sách → trả lời theo bản cũ.
-  - Câu hỏi multi-hop (phép + lương, mua sắm + CNTT) thiếu tài liệu thứ hai.
-  - Tài liệu scan PDF bị bỏ qua.
-  - Chưa có bộ đánh giá tự động → không đo được thay đổi có tốt hơn không.
+  - Chunk cố định cắt ngang bảng kết quả và công thức → mất số liệu.
+  - Câu hỏi so sánh nhiều paper ("phương pháp A vs B trên dataset X") thiếu tài liệu thứ hai (multi-hop, giống lỗi #4 trong lab).
+  - Nhiều version của cùng một paper (arXiv v1/v2, bản hội nghị) → trích số liệu cũ (giống lỗi version #3, #5).
+  - Thuật ngữ/viết tắt chuyên ngành (tên dataset, tên metric) dense search hay bỏ sót.
+  - Không có cách đo chất lượng câu trả lời.
 
 #### 2. Kế hoạch cải tiến
-1. **Chunking strategy:** Hierarchical (child 256 / parent theo section) kết hợp structure-aware cho tài liệu markdown có header — lab cho thấy retrieve child + trả parent cho context precision 0.97. Không dùng semantic chunking với model tiếng Anh (cắt quá vụn với tiếng Việt).
-2. **Search retrieval:** Hybrid BM25 (underthesea) + dense bge-m3 + RRF. BM25 bắt chính xác mã số, con số, tên riêng ("PVI", "P3-P4", "helpdesk@cty.vn"); dense bắt paraphrase. Thêm **query decomposition** cho câu multi-hop và **metadata filter/boost** theo `status=current`.
-3. **Reranking:** Có — bge-reranker-v2-m3 (đa ngữ, top-1 đúng 20/20). Để giảm latency ~600 ms: rerank top-10 thay vì 20, chạy trên GPU, hoặc thử Flashrank cho query đơn giản. Thêm ngưỡng score để loại context nhiễu.
-4. **Evaluation:** RAGAS 4 metrics trên golden set ≥ 50 câu (đủ 6 loại: lookup, version, negation, multi-hop, numeric, ambiguous), chạy trong CI mỗi khi đổi prompt/chunking; spot-check thủ công các câu có điểm 0 để loại false-negative của judge.
-5. **Enrichment:** Combined single-call (contextual prepend + HyQA + metadata) — rẻ (1 call/chunk) và có cache. Mở rộng schema metadata: `effective_date`, `version`, `supersedes` để xử lý xung đột phiên bản.
+1. **Chunking strategy:** Structure-aware theo section của paper (Abstract, Method, Experiments…) làm parent + child 256-512 token để retrieve; giữ nguyên bảng/caption trong một chunk. Lý do: lab cho thấy retrieve child + trả parent cho context precision 0.97.
+2. **Search retrieval:** Hybrid BM25 + dense (bge-m3) + RRF — BM25 bắt chính xác tên dataset, viết tắt, con số; dense bắt paraphrase. Thêm query decomposition cho câu hỏi so sánh nhiều paper và MMR theo `source` để đa dạng tài liệu.
+3. **Reranking:** Có — bge-reranker-v2-m3 trên top-20, ngưỡng score để loại context nhiễu. Corpus nhỏ, dùng cá nhân nên latency ~0.6s chấp nhận được.
+4. **Evaluation:** Tự soạn golden set ~40 câu (lookup số liệu, so sánh, định nghĩa, câu hỏi "paper nào…") → chạy RAGAS 4 metrics mỗi lần đổi chunking/prompt; kiểm tra tay các câu điểm 0 để loại false-negative của judge.
+5. **Enrichment:** Combined single-call: contextual prepend (tên paper, năm, section) + HyQA + metadata (`title`, `year`, `venue`, `version`, `datasets`) → filter/boost theo năm và bản mới nhất.
 
 #### 3. Timeline triển khai
-- **Tuần 1:** Xây golden test set 50 câu + chạy RAGAS cho pipeline hiện tại làm baseline; thêm OCR cho PDF scan.
-- **Tuần 2:** Chuyển sang hierarchical + structure-aware chunking; hybrid search BM25 + dense + RRF; đo lại RAGAS.
-- **Tuần 3:** Thêm reranker + ngưỡng score; M5 combined enrichment với metadata phiên bản; boost bản hiện hành.
-- **Tuần 4:** Query decomposition cho multi-hop, tối ưu latency (rerank top-10, cache embedding query), đưa RAGAS vào CI và viết báo cáo so sánh trước/sau.
+- **Tuần 1:** Ingest PDF (pypdf + OCR cho bản scan), parse section; soạn golden set 40 câu; đo baseline RAGAS.
+- **Tuần 2:** Structure-aware + hierarchical chunking; hybrid BM25 + dense + RRF; đo lại.
+- **Tuần 3:** Reranker + combined enrichment với metadata paper; boost bản mới nhất.
+- **Tuần 4:** Query decomposition cho câu hỏi so sánh, trích dẫn nguồn (paper + trang) trong câu trả lời, viết báo cáo trước/sau.
