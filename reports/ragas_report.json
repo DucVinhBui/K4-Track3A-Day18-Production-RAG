@@ -1,0 +1,171 @@
+{
+  "aggregate": {
+    "faithfulness": 0.896,
+    "answer_relevancy": 0.8569,
+    "context_precision": 0.9667,
+    "context_recall": 0.9333
+  },
+  "num_questions": 20,
+  "failures": [
+    {
+      "question": "Nhân viên tạm ứng 15 triệu, sau 20 ngày mới thanh toán. Bị phạt bao nhiêu?",
+      "answer": "400.000 VNĐ. \n\nGiải thích: Nhân viên tạm ứng 15.000.000 VNĐ và không thanh toán trong 15 ngày, do đó sẽ bị phạt 2%/tháng trên số tiền chưa hoàn ứng. Tính toán như sau: \n\nPhí phạt = 15.000.000 VNĐ * 2% = 300.000 VNĐ cho tháng đầu tiên. \n\nSau 20 ngày, tức là 5 ngày của tháng thứ hai, sẽ tính thêm 5/30 của tháng thứ hai: \n\nPhí phạt tháng thứ hai = 15.000.000 VNĐ * 2% * (5/30) = 100.000 VNĐ. \n\nTổng phạt = 300.000 VNĐ + 100.000 VNĐ = 400.000 VNĐ.",
+      "ground_truth": "Thời hạn thanh toán là 15 ngày. Quá hạn 5 ngày, bị tính phí 2%/tháng trên 15.000.000 VNĐ = 300.000 VNĐ/tháng (tính pro-rata khoảng 50.000 VNĐ cho 5 ngày).",
+      "scores": {
+        "faithfulness": 0.1429,
+        "context_recall": 0.6667,
+        "context_precision": 1.0,
+        "answer_relevancy": 0.9
+      },
+      "avg_score": 0.6774,
+      "worst_metric": "faithfulness",
+      "score": 0.1429,
+      "diagnosis": "LLM hallucinating — answer không bám context",
+      "suggested_fix": "Tighten prompt, lower temperature, bắt buộc trích dẫn context"
+    },
+    {
+      "question": "Khi phát hiện malware trên máy, nhân viên có nên tự xử lý không?",
+      "answer": "Không. Nhân viên tuyệt đối **không tự ý xử lý malware** hoặc tìm cách khắc phục mà không có sự hướng dẫn của đội CNTT.",
+      "ground_truth": "KHÔNG. Nhân viên tuyệt đối không được tự ý xử lý malware. Phải báo cáo trong vòng 1 giờ qua helpdesk@cty.vn hoặc hotline CNTT. Tự ý xử lý bị coi là vi phạm nghiêm trọng.",
+      "scores": {
+        "faithfulness": 0.0,
+        "context_recall": 1.0,
+        "context_precision": 1.0,
+        "answer_relevancy": 0.8496
+      },
+      "avg_score": 0.7124,
+      "worst_metric": "faithfulness",
+      "score": 0.0,
+      "diagnosis": "LLM hallucinating — answer không bám context",
+      "suggested_fix": "Tighten prompt, lower temperature, bắt buộc trích dẫn context"
+    },
+    {
+      "question": "Thâm niên bao nhiêu năm thì được cộng thêm ngày phép?",
+      "answer": "3 năm. Nhân viên có thâm niên từ 3 năm trở lên sẽ được cộng thêm 1 ngày phép cho mỗi 3 năm làm việc liên tục theo chính sách nghỉ phép năm phiên bản 2024.",
+      "ground_truth": "Theo chính sách v2024 hiện hành, nhân viên có thâm niên từ 3 năm trở lên được cộng thêm 1 ngày phép cho mỗi 3 năm. Chính sách cũ v2023 yêu cầu 5 năm.",
+      "scores": {
+        "faithfulness": 0.75,
+        "context_recall": 1.0,
+        "context_precision": 0.5,
+        "answer_relevancy": 0.7764
+      },
+      "avg_score": 0.7566,
+      "worst_metric": "context_precision",
+      "score": 0.5,
+      "diagnosis": "Too many irrelevant chunks — context nhiễu",
+      "suggested_fix": "Add reranking, metadata filter (version/category), giảm top_k"
+    },
+    {
+      "question": "Một nhân viên Senior có 9 năm thâm niên được nghỉ bao nhiêu ngày phép năm và lương trong khoảng nào?",
+      "answer": "18 ngày phép năm. \n\nNhân viên có 9 năm thâm niên sẽ được hưởng 15 ngày phép cơ bản cộng thêm 3 ngày phép (1 ngày cho mỗi 3 năm thâm niên), tổng cộng là 18 ngày phép. Lương sẽ được tính theo quy định của công ty, nhưng không có thông tin cụ thể về mức lương trong context.",
+      "ground_truth": "Theo chính sách v2024: 15 ngày cơ bản + 3 ngày thâm niên (9÷3=3) = 18 ngày phép. Lương Senior (P3-P4): 20-35 triệu VNĐ/tháng.",
+      "scores": {
+        "faithfulness": 0.7143,
+        "context_recall": 0.5,
+        "context_precision": 1.0,
+        "answer_relevancy": 0.9555
+      },
+      "avg_score": 0.7925,
+      "worst_metric": "context_recall",
+      "score": 0.5,
+      "diagnosis": "Missing relevant chunks — retriever bỏ sót thông tin",
+      "suggested_fix": "Improve chunking (parent-child), thêm BM25/query expansion, tăng top_k"
+    },
+    {
+      "question": "Có cần kích hoạt xác thực đa yếu tố (MFA) không?",
+      "answer": "Có. Tất cả nhân viên bắt buộc phải kích hoạt MFA cho tài khoản email, VPN và các hệ thống nội bộ.",
+      "ground_truth": "Có, theo chính sách mật khẩu v2.0 hiện hành, tất cả nhân viên bắt buộc kích hoạt MFA cho email, VPN và hệ thống nội bộ. Chính sách cũ v1.0 không yêu cầu MFA.",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 0.5,
+        "context_precision": 1.0,
+        "answer_relevancy": 0.8917
+      },
+      "avg_score": 0.8479,
+      "worst_metric": "context_recall",
+      "score": 0.5,
+      "diagnosis": "Missing relevant chunks — retriever bỏ sót thông tin",
+      "suggested_fix": "Improve chunking (parent-child), thêm BM25/query expansion, tăng top_k"
+    },
+    {
+      "question": "Phụ cấp ăn trưa hàng tháng là bao nhiêu?",
+      "answer": "1.000.000 VNĐ/tháng. Tất cả nhân viên được hưởng phụ cấp ăn trưa này, chi trả cùng kỳ lương.",
+      "ground_truth": "Phụ cấp ăn trưa là 1.000.000 VNĐ/tháng, chi trả cùng kỳ lương.",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 1.0,
+        "context_precision": 0.8333,
+        "answer_relevancy": 0.8156
+      },
+      "avg_score": 0.9122,
+      "worst_metric": "answer_relevancy",
+      "score": 0.8156,
+      "diagnosis": "Answer doesn't match question — trả lời lan man/lạc đề",
+      "suggested_fix": "Improve prompt template: trả lời trực tiếp, ngắn gọn"
+    },
+    {
+      "question": "Nhân viên thử việc có được nghỉ phép năm không?",
+      "answer": "Không. Nhân viên thử việc không được nghỉ phép năm theo chính sách hiện hành.",
+      "ground_truth": "KHÔNG. Nhân viên thử việc KHÔNG được nghỉ phép năm. Nếu cần nghỉ, phải xin nghỉ không lương và được trưởng phòng phê duyệt.",
+      "scores": {
+        "faithfulness": 0.6667,
+        "context_recall": 1.0,
+        "context_precision": 1.0,
+        "answer_relevancy": 1.0
+      },
+      "avg_score": 0.9167,
+      "worst_metric": "faithfulness",
+      "score": 0.6667,
+      "diagnosis": "LLM hallucinating — answer không bám context",
+      "suggested_fix": "Tighten prompt, lower temperature, bắt buộc trích dẫn context"
+    },
+    {
+      "question": "Mentor và buddy của nhân viên mới có thể là cùng một người không? Quản lý trực tiếp có thể làm mentor không?",
+      "answer": "Không. Mentor và buddy của nhân viên mới phải là hai người khác nhau để đảm bảo nhân viên mới có nhiều nguồn hỗ trợ đa dạng. Quản lý trực tiếp cũng không được làm mentor hoặc buddy.",
+      "ground_truth": "KHÔNG cho cả hai. Mentor và buddy phải là hai người khác nhau. Quản lý trực tiếp không được làm mentor hoặc buddy.",
+      "scores": {
+        "faithfulness": 0.75,
+        "context_recall": 1.0,
+        "context_precision": 1.0,
+        "answer_relevancy": 0.9572
+      },
+      "avg_score": 0.9268,
+      "worst_metric": "faithfulness",
+      "score": 0.75,
+      "diagnosis": "LLM hallucinating — answer không bám context",
+      "suggested_fix": "Tighten prompt, lower temperature, bắt buộc trích dẫn context"
+    },
+    {
+      "question": "Nếu cần mua một chiếc laptop 30 triệu cho nhân viên mới, ai phê duyệt và cần gì từ phòng CNTT?",
+      "answer": "Giám đốc phòng ban (Director) phê duyệt. Cần có xác nhận của phòng CNTT về cấu hình kỹ thuật trước khi đề xuất.",
+      "ground_truth": "Laptop 30 triệu nằm trong khoảng 5-50 triệu nên cần Giám đốc phòng ban (Director) phê duyệt. Ngoài ra, mua sắm thiết bị CNTT cần có xác nhận cấu hình kỹ thuật từ phòng CNTT trước khi đề xuất. Cần đính kèm ít nhất 3 báo giá vì trên 10 triệu.",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 1.0,
+        "context_precision": 1.0,
+        "answer_relevancy": 0.7492
+      },
+      "avg_score": 0.9373,
+      "worst_metric": "answer_relevancy",
+      "score": 0.7492,
+      "diagnosis": "Answer doesn't match question — trả lời lan man/lạc đề",
+      "suggested_fix": "Improve prompt template: trả lời trực tiếp, ngắn gọn"
+    },
+    {
+      "question": "Nhân viên được tài trợ khóa học 25 triệu, nghỉ việc sau 8 tháng hoàn thành khóa học. Phải hoàn trả bao nhiêu?",
+      "answer": "100% chi phí. Nhân viên phải hoàn trả 100% chi phí đào tạo đã được tài trợ nếu nghỉ việc trước thời hạn cam kết 1 năm.",
+      "ground_truth": "Nhân viên phải cam kết làm việc ít nhất 1 năm sau khi hoàn thành khóa học. Nghỉ sau 8 tháng là trước hạn cam kết, phải hoàn trả 100% chi phí tức 25.000.000 VNĐ.",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 1.0,
+        "context_precision": 1.0,
+        "answer_relevancy": 0.7742
+      },
+      "avg_score": 0.9435,
+      "worst_metric": "answer_relevancy",
+      "score": 0.7742,
+      "diagnosis": "Answer doesn't match question — trả lời lan man/lạc đề",
+      "suggested_fix": "Improve prompt template: trả lời trực tiếp, ngắn gọn"
+    }
+  ]
+}
